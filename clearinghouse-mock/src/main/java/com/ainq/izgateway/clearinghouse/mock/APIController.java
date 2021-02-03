@@ -1,7 +1,7 @@
 package com.ainq.izgateway.clearinghouse.mock;
 /*
  * Copyright 2020 Audiacious Inquiry, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -139,6 +139,7 @@ public class APIController {
                 false,  // Don't apply any fixes
                 null,   // Where to put converted HL7 outputs (not applicable)
                 null,   // Where to put converted CVRS outputs (not applicable)
+                null,   // Where to put converted FHIR outputs (not applicable)
                 files   // The file to  convert
             );
 
