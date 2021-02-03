@@ -33,6 +33,14 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 public class TestCommandLine {
 
+    static {
+        Converter.setIdGenerator(TestCommandLine::generateIdentifier);
+    }
+    private static int nextId = 1;
+    private static String generateIdentifier() {
+        return Integer.toString(nextId++);
+    }
+
     @ParameterizedTest
     @CsvSource( {
         "src/test/resources/testgood.txt,0,src/test/resources/testgood.txt.rpt,",
@@ -112,16 +120,17 @@ public class TestCommandLine {
 
     @ParameterizedTest
     @CsvSource( {
-        "src/test/resources/testgood.txt,src/test/resources/testgood.hl7,src/test/resources/testgood.cnv.rpt,false",
-        "src/test/resources/testerror.txt,src/test/resources/testerror.hl7,src/test/resources/testerror.cnv.rpt,false",
-        "src/test/resources/testdefault.hl7,src/test/resources/testdefault.txt,src/test/resources/testdefault.cnv.rpt,true",
+        "src/test/resources/testgood.txt,-7,src/test/resources/testgood.hl7,src/test/resources/testgood.cnv.rpt,false",
+        "src/test/resources/testerror.txt,-7,src/test/resources/testerror.hl7,src/test/resources/testerror.cnv.rpt,false",
+        "src/test/resources/testdefault.hl7,-c,src/test/resources/testdefault.txt,src/test/resources/testdefault.cnv.rpt,true",
+        "src/test/resources/testgood.txt,-4,src/test/resources/testgood.ndjson,src/test/resources/testgood.cnvfhir.rpt,false",
     })
-    public void testConversion(String file, String file2, String baseline, boolean useDefault) throws IOException, InterruptedException {
+    public void testConversion(String file, String option, String file2, String baseline, boolean useDefault) throws IOException, InterruptedException {
         Path dir = Files.createTempDirectory("cvrs");
         String outputDir = dir.toFile().getCanonicalPath();
-        String command[] = { "-sALL", useDefault ? "-d" : "-D", (file.endsWith(".txt") ? "-7" : "-c") + outputDir, file };
+        String command[] = { "-sALL", useDefault ? "-d" : "-D", option + outputDir, file };
         Validator.main1(command, outputDir);
-        File outputFile = Utility.getNewFile(file, dir.toFile(), file.endsWith(".txt") ? "hl7" : "txt");
+        File outputFile = Utility.getNewFile(file, dir.toFile(), StringUtils.substringAfter(file2, "."));
 
         // Verify Converted File Matches Baseline Conversion
         compareFiles(outputFile, new File(file2), TestCommandLine::cleanMSH);

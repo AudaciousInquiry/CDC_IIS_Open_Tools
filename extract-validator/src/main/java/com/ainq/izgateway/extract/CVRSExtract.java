@@ -1,4 +1,5 @@
 package com.ainq.izgateway.extract;
+import com.ainq.izgateway.extract.annotations.FHIRField;
 /*
  * Copyright 2020 Audiacious Inquiry, Inc.
  *
@@ -15,6 +16,7 @@ package com.ainq.izgateway.extract;
 import com.ainq.izgateway.extract.annotations.FieldValidator;
 import com.ainq.izgateway.extract.annotations.Requirement;
 import com.ainq.izgateway.extract.annotations.RequirementType;
+import com.ainq.izgateway.extract.annotations.SystemValueType;
 import com.ainq.izgateway.extract.annotations.V2Field;
 import com.ainq.izgateway.extract.validation.BeanValidator;
 import com.ainq.izgateway.extract.validation.DateValidator;
@@ -60,18 +62,21 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "ORC-3-1")
+    @FHIRField(value = "Immunization.identifier", systemValueType = SystemValueType.LOCAL)
     private String vax_event_id;
 
 	/** Extract Type defines whether this file contains completely de-identified data, PPRL ID, or fully identifiable data. */
     @FieldValidator(validator = ExtractTypeValidator.class, paramString = "^(D|P|I)$")
     @CsvBindByName
     @V2Field(value = "MSH-8")
+    @FHIRField(value = "Patient.meta.security", systemValueType = SystemValueType.NATIONAL)
     private String ext_type;
 
 	/** Privacy Preserving Record Linkage ID. */
     @FieldValidator(validator = PPRLValidator.class, maxLength = 100)
     @CsvBindByName
     @V2Field(value = "PID-3(1)-1")
+    @FHIRField(value = "Patient.identifier", systemValueType = SystemValueType.NATIONAL)
     private String pprl_id;
 
 	/** Unique ID for this recipient. This can be the ID used by your system to uniquely identify the recipient. Or, it can be a randomly assigned unique identifier. However, the Recipient ID must be the same from one report to the next for the same recipient to allow for linking doses to the same Recipient ID. */
@@ -79,24 +84,28 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "PID-3(0)-1")
+    @FHIRField(value = "Patient.identifier", systemValueType = SystemValueType.LOCAL)
     private String recip_id;
 
 	/** Recipient's first name */
     @FieldValidator(validator = RedactedValidator.class)
     @CsvBindByName
     @V2Field(value = "PID-5-1")
+    @FHIRField(value = "Patient.name.given[0]")
     private String recip_first_name;
 
 	/** Recipient's middle name */
     @FieldValidator(validator = RedactedValidator.class)
     @CsvBindByName
     @V2Field(value = "PID-5-3")
+    @FHIRField(value = "Patient.name.given[1]")
     private String recip_middle_name;
 
 	/** Recipient's last name */
     @FieldValidator(validator = RedactedValidator.class)
     @CsvBindByName
     @V2Field(value = "PID-5-2")
+    @FHIRField(value = "Patient.name.family")
     private String recip_last_name;
 
 	/** Recipient's date of birth  */
@@ -104,6 +113,7 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "PID-7-1")
+    @FHIRField(value = "Patient.birthDate")
     private String recip_dob;
 
 	/** Sex of recipient */
@@ -111,42 +121,49 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "PID-8")
+    @FHIRField(value = "Patient.gender", map = { "M", "male", "F", "female" })
     private String recip_sex;
 
 	/** The street component of the recipient's address */
     @FieldValidator(validator = RedactedValidator.class)
     @CsvBindByName
     @V2Field(value = "PID-11-1")
+    @FHIRField(value = "Patient.address.line[0]")
     private String recip_address_street;
 
 	/** The steet 2 component of the recipient's address */
     @FieldValidator(validator = RedactedValidator.class)
     @CsvBindByName
     @V2Field(value = "PID-11-2")
+    @FHIRField(value = "Patient.address.line[1]")
     private String recip_address_street_2;
 
 	/** The city component of the recipient's address */
     @FieldValidator(validator = RedactedValidator.class)
     @CsvBindByName
     @V2Field(value = "PID-11-3")
+    @FHIRField(value = "Patient.address.city")
     private String recip_address_city;
 
 	/** The county component of the recipient's address */
     @FieldValidator(validator = ValueSetValidator.class, paramString = "COUNTY")
     @CsvBindByName
     @V2Field(value = "PID-11-9")
+    @FHIRField(value = "Patient.address.district")
     private String recip_address_county;
 
 	/** The state component of the recipient's address */
     @FieldValidator(validator = ValueSetValidator.class, paramString = "STATE")
     @CsvBindByName
     @V2Field(value = "PID-11-4")
+    @FHIRField(value = "Patient.address.state")
     private String recip_address_state;
 
 	/** The zip code of the recipient's address. 5 digit or 10 digits (with hyphen) are acceptable */
     @FieldValidator(validator = Matches.class, paramString = "\\d{5}(-\\d{4})?")
     @CsvBindByName
     @V2Field(value = "PID-11-5")
+    @FHIRField(value = "Patient.address.postalCode")
     private String recip_address_zip;
 
 	/** Patient's self-reported race */
@@ -154,36 +171,42 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "PID-10(0)-1", system="CDCREC")
+    @FHIRField(value = "Patient.extension('http://hl7.org/fhir/us/core/StructureDefinition/us-core-race').extension('ombCategory')[0]", system = "urn:oid:2.16.840.1.113883.6.238")
     private String recip_race_1;
 
 	/** Patient's self-reported race. Fields 2 through 6 support patients with more than 1 reported race. If only one race is reported, fields 2 through 6 are not necessary. */
     @FieldValidator(validator = ValueSetValidatorIfKnown.class, paramString = "RACE")
     @CsvBindByName
     @V2Field(value = "PID-10(1)-1", system="CDCREC")
+    @FHIRField(value = "Patient.extension('http://hl7.org/fhir/us/core/StructureDefinition/us-core-race').extension('ombCategory')[1]", system = "urn:oid:2.16.840.1.113883.6.238")
     private String recip_race_2;
 
 	/** Patient's self-reported race. Fields 2 through 6 support patients with more than 1 reported race. If only one race is reported, fields 2 through 6 are not necessary. */
     @FieldValidator(validator = ValueSetValidatorIfKnown.class, paramString = "RACE")
     @CsvBindByName
     @V2Field(value = "PID-10(2)-1", system="CDCREC")
+    @FHIRField(value = "Patient.extension('http://hl7.org/fhir/us/core/StructureDefinition/us-core-race').extension('ombCategory')[2]", system = "urn:oid:2.16.840.1.113883.6.238")
     private String recip_race_3;
 
 	/** Patient's self-reported race. Fields 2 through 6 support patients with more than 1 reported race. If only one race is reported, fields 2 through 6 are not necessary. */
     @FieldValidator(validator = ValueSetValidatorIfKnown.class, paramString = "RACE")
     @CsvBindByName
     @V2Field(value = "PID-10(3)-1", system="CDCREC")
+    @FHIRField(value = "Patient.extension('http://hl7.org/fhir/us/core/StructureDefinition/us-core-race').extension('ombCategory')[3]", system = "urn:oid:2.16.840.1.113883.6.238")
     private String recip_race_4;
 
 	/** Patient's self-reported race. Fields 2 through 6 support patients with more than 1 reported race. If only one race is reported, fields 2 through 6 are not necessary. */
     @FieldValidator(validator = ValueSetValidatorIfKnown.class, paramString = "RACE")
     @CsvBindByName
     @V2Field(value = "PID-10(4)-1", system="CDCREC")
+    @FHIRField(value = "Patient.extension('http://hl7.org/fhir/us/core/StructureDefinition/us-core-race').extension('ombCategory')[4]", system = "urn:oid:2.16.840.1.113883.6.238")
     private String recip_race_5;
 
 	/** Patient's self-reported race. Fields 2 through 6 support patients with more than 1 reported race. If only one race is reported, fields 2 through 6 are not necessary. */
     @FieldValidator(validator = ValueSetValidatorIfKnown.class, paramString = "RACE")
     @CsvBindByName
     @V2Field(value = "PID-10(5)-1", system="CDCREC")
+    @FHIRField(value = "Patient.extension('http://hl7.org/fhir/us/core/StructureDefinition/us-core-race').extension('ombCategory')[5]", system = "urn:oid:2.16.840.1.113883.6.238")
     private String recip_race_6;
 
 	/** The ancestry of the patient */
@@ -191,6 +214,7 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "PID-22-1", system="CDCREC")
+    @FHIRField(value = "Patient.extension('http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity').extension('ombCategory')", system = "urn:oid:2.16.840.1.113883.6.238")
     private String recip_ethnicity;
 
 	/** The date the vaccination event occurred (or was intended to occur) */
@@ -198,6 +222,7 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "RXA-3-1")
+    @FHIRField(value = "Immunization.occurrenceDateTime")
     private String admin_date;
 
 	/** The vaccine type that was administered. */
@@ -206,6 +231,7 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL })
     @CsvBindByName
     @V2Field(value = "RXA-5-1", system="CVX")
+    @FHIRField(value = "Immunization.vaccineCode.coding", system = "http://hl7.org/fhir/sid/cvx")
     private String cvx;
 
 	/** The vaccine product that was administered. Unit of Use (UoU) is preferred if both UoU and Unit of Sale (UoS) are available. */
@@ -213,6 +239,7 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.DO_NOT_SEND, when = { MISSED_APPOINTMENT, REFUSAL })
     @CsvBindByName
     @V2Field(value = "RXA-5-4", system="NDC")
+    @FHIRField(value = "Immunization.vaccineCode.coding", system = "http://hl7.org/fhir/sid/ndc")
     private String ndc;
 
 	/** The manufacturer of the vaccine administered */
@@ -220,12 +247,14 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.DO_NOT_SEND, when = { MISSED_APPOINTMENT, REFUSAL })
     @CsvBindByName
     @V2Field(value = "RXA-17-1", system="MVX")
+    @FHIRField(value = "Immunization.manufacturer.identifier", system = "http://terminology.hl7.org/CodeSystem/MVX")
     private String mvx;
 
 	/** The lot number of the vaccine administered: Unit of Use (UoU) is preferred if both UoU and Unit of Sale (UoS) are available. */
     @Requirement(value=RequirementType.DO_NOT_SEND, when = { MISSED_APPOINTMENT, REFUSAL })
     @CsvBindByName
     @V2Field(value = "RXA-15")
+    @FHIRField(value = "Immunization.lotNumber")
     private String lot_number;
 
 	/** The expiration date of the vaccine administered. This can either be YYYY-MM-DD or YYYY-MM */
@@ -233,6 +262,7 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.DO_NOT_SEND, when = { MISSED_APPOINTMENT, REFUSAL })
     @CsvBindByName
     @V2Field(value = "RXA-16")
+    @FHIRField(value = "Immunization.expirationDate")
     private String vax_expiration;
 
 	/** The body site of vaccine administration. */
@@ -240,6 +270,7 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.DO_NOT_SEND, when = { MISSED_APPOINTMENT, REFUSAL })
     @CsvBindByName
     @V2Field(value = "RXR-2-1", system="HL70163")
+    @FHIRField(value = "Immunization.site", system = "http://terminology.hl7.org/CodeSystem/v2-0163")
     private String vax_admin_site;
 
 	/** The route of vaccine administration (e.g., oral, subcutaneous) */
@@ -247,6 +278,10 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.DO_NOT_SEND, when = { MISSED_APPOINTMENT, REFUSAL })
     @CsvBindByName
     @V2Field(value = "RXR-1-1", system="NCIT")
+    @FHIRField(value = "Immunization.route",
+        systemValueType = SystemValueType.VARIES,
+        system = "http://terminology.hl7.org/NamingSystem/v3-nciThesaurus"
+    )
     private String vax_route;
 
 	/** Dose # in vaccination series provided dose is considered valid (e.g., counts towards immunity). */
@@ -255,6 +290,7 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION })
     @CsvBindByName
     @V2Field(value = "OBX-5-1", system="DCHDOSE", obx3="30973-2^Dose number in series^LN")
+    @FHIRField(value = "Immunization.protocolApplied.doseNumberPositiveInt")
     private String dose_num;
 
 	/** Report if the vaccination series is complete. Select 'YES' when last valid dose is administered and patient has satisfied the requirements of COVID vaccination. If more doses are recommended select 'NO'. If it is not known (or cannot be calculated), select 'UNK' */
@@ -263,6 +299,7 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION })
     @CsvBindByName
     @V2Field(value = "OBX-5-1", obx3="59783-1^Status in immunization series^LN")
+    @FHIRField(value = "Observation", code = "http://loinc.org#59783-1")
     private String vax_series_complete;
 
 	/** The name of the the organization that originated and is accountable for the content of the record. This can be thought of as the "parent organization", "Health System", etc. It is related to the Administered at Location field. If an organization has several clinics or facilities, this would be the organization that represents all of those clinics/facilities. */
@@ -270,6 +307,7 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "MSH-22-1", alternate = "MSH-4-1")
+    @FHIRField(value = "Immunization.performer.actor.display")
     private String responsible_org;
 
 	/** The name of the facility that reported the vaccination, refusal, or missed appointment. This is the physical clinic or facility owned by the Responsible Organization. It is possible in a small practice setting that Responsible Organization and Administered at Location are one in the same. */
@@ -277,6 +315,7 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "RXA-11-4-1")
+    @FHIRField(value = "Location.name")
     private String admin_name;
 
 	/** This is the 6-digit Provider PIN in VTrckS. For VFC Providers, this is the VFC PIN. This ID is being used for linking across data sources, so population is critical. */
@@ -285,6 +324,7 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT }, versions= { "1" } )
     @Requirement(value=RequirementType.REQUIRED_IF_KNOWN, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT }, versions= { "2" } )
     @V2Field(value = "RXA-11-4-2")
+    @FHIRField(value = "Immunization.performer.actor.identifier.value", systemValueType = SystemValueType.LOCAL)
     private String vtrcks_prov_pin;
 
 	/** The characteristic of the provider site that reported the vaccination, refusal, or missed appointment */
@@ -292,39 +332,46 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL})
     @V2Field(value = "RXA-11-6-1")
+    @FHIRField(value = "Immunization.performer.function", systemValueType = SystemValueType.LOCAL)
     private String admin_type;
 
 	/** The street component of where the vaccine is being administered (or was intended to be administered) (i.e. the administered at location). */
     @CsvBindByName
     @V2Field(value = "RXA-11-9")
+    @FHIRField(value = "Location.address.line[0]")
     private String admin_address_street;
 
 	/** The street 2 component of where the vaccine is being administered (or was intended to be administered) (i.e. the administered at location). */
     @CsvBindByName
     @V2Field(value = "RXA-11-10")
+    @FHIRField(value = "Location.address.line[1]")
     private String admin_address_street_2;
 
 	/** The city component of where the vaccine is being administered (or was intended to be administered) (i.e. the administered at location). */
     @CsvBindByName
     @V2Field(value = "RXA-11-11")
+    @FHIRField(value = "Location.address.city")
     private String admin_address_city;
 
 	/** The county component of where the vaccine is being administered (or was intended to be administered) (i.e. the administered at location). */
     @FieldValidator(validator = ValueSetValidatorIfKnown.class, paramString = "COUNTY")
     @CsvBindByName
     @V2Field(value = "RXA-11-16")
+    @FHIRField(value = "Location.address.district")
     private String admin_address_county;
 
 	/** The state component of where the vaccine is being administered (or was intended to be administered) (i.e. the administered at location). */
     @FieldValidator(validator = ValueSetValidatorIfKnown.class, paramString = "STATE")
     @CsvBindByName
     @V2Field(value = "RXA-11-12")
+    @FHIRField(value = "Location.address.state")
     private String admin_address_state;
 
 	/** The zip code component of where the vaccine is being administered (or was intended to be administered) (i.e. the administered at location). */
     @FieldValidator(validator = Matches.class, paramString = "^(\\d{5}(-\\d{4})?)?$")
     @CsvBindByName
     @V2Field(value = "RXA-11-13")
+    @FHIRField(value = "Location.address.postalCode")
     private String admin_address_zip;
 
 	/** The professional designation of the person administering the vaccination. (e.g., MD, LPN, RN). May also be referenced as vaccination administering provider type. */
@@ -340,6 +387,7 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "RXA-20", map = { "YES", "RE", "NO", "" })
+    @FHIRField(value = "Immunization.status", map = { "YES", "completed", "NO", "not-done" })
     private String vax_refusal;
 
     /**
@@ -363,6 +411,9 @@ public class CVRSExtract implements CVRS {
     @CsvBindByName
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "OBX-5-1", obx3="VXC8^Member of Special Risk Group^PHIN VS")
+    @FHIRField(value = "Observation", code = "urn:oid:2.16.840.1.114222.4.5.274#VXC8",
+        system = "http://terminology.hl7.org/CodeSystem/v2-0136",
+        map = { "YES", "Y", "NO", "N", "UNK", "UNK" } )
     private String cmorbid_status;
 
     /** Report if the patient missed their vaccination appointment  */
@@ -381,6 +432,9 @@ public class CVRSExtract implements CVRS {
     @Requirement(value=RequirementType.REQUIRED, when = { VACCINATION, REFUSAL, MISSED_APPOINTMENT })
     @V2Field(value = "OBX-5", obx3="75505-8^Serological Evidence of Immunity^LN",
         map = { "YES", "YES", "NO", "NO", "UNK", "UNK^Unknown^NullFlavor" } )
+    @FHIRField(value = "Observation", code = "http://loinc.org#75505-8",
+        system = "http://terminology.hl7.org/CodeSystem/v2-0136",
+        map = { "YES", "Y", "NO", "N", "UNK", "UNK" } )
     private String serology;
 
     private static String[] HEADERS = null;

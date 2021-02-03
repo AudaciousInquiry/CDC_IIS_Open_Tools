@@ -1,16 +1,16 @@
-C38238 (Intradermal)
-C28161 (Intramuscular)
-C38284 (Nasal)
-C38276 (Intravenous)
-C38288 (Oral)
-C38676 (Percutaneous)
-C38299 (Subcutaneous)
-C38305 (Transdermal)
-IM (Intramuscular)
-NS (Nasal)
-IN (Intranasal)
-IV (Intravenous)
-PO (Oral)
-OTH (Other/Miscellaneous)
-SC (Subcutaneous)
-TD (Transdermal)
+C38238 (Intradermal) http://terminology.hl7.org/NamingSystem/v3-nciThesaurus
+C28161 (Intramuscular) http://terminology.hl7.org/NamingSystem/v3-nciThesaurus
+C38284 (Nasal) http://terminology.hl7.org/NamingSystem/v3-nciThesaurus
+C38276 (Intravenous) http://terminology.hl7.org/NamingSystem/v3-nciThesaurus
+C38288 (Oral) http://terminology.hl7.org/NamingSystem/v3-nciThesaurus
+C38676 (Percutaneous) http://terminology.hl7.org/NamingSystem/v3-nciThesaurus
+C38299 (Subcutaneous) http://terminology.hl7.org/NamingSystem/v3-nciThesaurus
+C38305 (Transdermal) http://terminology.hl7.org/NamingSystem/v3-nciThesaurus
+IM (Intramuscular) http://terminology.hl7.org/CodeSystem/v2-0162
+NS (Nasal) http://terminology.hl7.org/CodeSystem/v2-0162
+IN (Intranasal) http://terminology.hl7.org/CodeSystem/v2-0162
+IV (Intravenous) http://terminology.hl7.org/CodeSystem/v2-0162
+PO (Oral) http://terminology.hl7.org/CodeSystem/v2-0162
+OTH (Other/Miscellaneous) http://terminology.hl7.org/CodeSystem/v2-0162
+SC (Subcutaneous) http://terminology.hl7.org/CodeSystem/v2-0162
+TD (Transdermal) http://terminology.hl7.org/CodeSystem/v2-0162

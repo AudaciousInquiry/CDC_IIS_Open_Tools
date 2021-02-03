@@ -50,6 +50,7 @@ import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
+import org.hl7.fhir.r4.model.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +61,7 @@ import com.ainq.izgateway.extract.validation.CVRSValidationException;
 import com.ainq.izgateway.extract.validation.NullValidator;
 import com.ainq.izgateway.extract.exceptions.CsvFieldValidationException;
 
+import ca.uhn.fhir.parser.IParser;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 /**
@@ -146,6 +148,11 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
             if (getHl7() != null) {
                 getReport().printf("%d of %d HL7 records written.%n",
                     getHl7Count(), getCount());
+            }
+
+            if (getFHIR() != null) {
+                getReport().printf("%d of %d FHIR records written.%n",
+                    getFHIRCount(), getCount());
             }
         }
 
@@ -357,7 +364,8 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
 
             boolean useDefaults = false;
             String hl7Folder = null,
-                   cvrsFolder = null;
+                   cvrsFolder = null,
+                   fhirFolder = null;
             boolean useJson = false;
             boolean skip = false;
             boolean fixIt = false;
@@ -440,7 +448,13 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
                     hl7Folder = null;
                     continue;
                 }
-                if (hasArgument(arg,"-7[folder]", "Write HL7 version of input to <file>.hl7 at specified folder (default to .)")) {
+
+                if (hasArgument(arg, "-4[folder]", "Write HL7 FHIR R4 of input to <file>.ndjson at specified folder (default to .)")) {
+                    fhirFolder = arg.length() == 2 ? "." : arg.substring(2);
+                    continue;
+                }
+
+                if (hasArgument(arg, "-7[folder]", "Write HL7 version of input to <file>.hl7 at specified folder (default to .)")) {
                     hl7Folder = arg.length() == 2 ? "." : arg.substring(2);
                     continue;
                 }
@@ -448,7 +462,6 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
                     cvrsFolder = hl7Folder = arg.length() == 2 ? "." : arg.substring(2);
                     continue;
                 }
-
                 if (hasArgument(arg,"-r[folder]", "Write the report to <file>.rpt at the specified folder (defaults to standard output)") ) {
                     reportFolder = arg.length() == 2 ? "-" : arg.substring(2);
                     continue;
@@ -512,7 +525,7 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
                 if (redact && hl7Folder != null) {
                     useDefaults = true;
                 }
-                totalErrors += validateFiles(reportFolder, maxErrors, suppressErrors, version, useJson, useDefaults, fixIt, hl7Folder, cvrsFolder, files);
+                totalErrors += validateFiles(reportFolder, maxErrors, suppressErrors, version, useJson, useDefaults, fixIt, hl7Folder, cvrsFolder, fhirFolder, files);
             }
 
             return totalErrors;
@@ -533,6 +546,7 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
      * @param fixIt If true,
      * @param hl7Folder Where to put converted HL7 Messages
      * @param cvrsFolder Where to put converted CVRS Tab Delimited Output
+     * @param fhirFolder
      * @param files The files to process
      * @return  The number of errors found
      * @throws IOException  If a read error occurs
@@ -547,6 +561,7 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
         boolean fixIt,
         String hl7Folder,
         String cvrsFolder,
+        String fhirFolder,
         String[] files
     ) throws IOException {
         int errors = 0;
@@ -566,6 +581,7 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
                     v.needsHeader = needsHeader;
                     v.setCvrs(cvrs);
                     v.setHL7(getOutputStream(file, hl7Folder, "hl7"));
+                    v.setFHIR(getOutputStream(file, fhirFolder, "ndjson"));
                     v.setMaxErrors(maxErrors);
                     v.setName(file);
                     v.setFixIt(fixIt);
@@ -769,8 +785,14 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
     /** The HL7 output stream */
     private PrintStream hl7 = null;
 
+    /** The FHIR output stream */
+    private PrintStream fhir = null;
+
     /** Count of HL7 Records written */
     private int hl7Count = 0;
+
+    /** Count of FHIR Records written */
+    private int FHIRCount = 0;
 
     /** Set to true if errors should be ignored while writing HL7 or CVRS Output */
     private boolean ignoringErrors = false;
@@ -1009,11 +1031,28 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
     }
 
     /**
+     * Get the stream where FHIR records should be written or null
+     * to skip this step.
+     * @return The stream where FHIR records will be written
+     */
+    public PrintStream getFHIR() {
+        return fhir;
+    }
+
+    /**
      * Return the count of HL7 records written.
      * @return the count of HL7 records written.
      */
     public int getHl7Count() {
         return hl7Count;
+    }
+
+    /**
+     * Return the count of FHIR records written.
+     * @return the count of FHIR records written.
+     */
+    public int getFHIRCount() {
+        return FHIRCount;
     }
 
     /**
@@ -1156,6 +1195,11 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
      */
     public Validator setHL7(PrintStream outputStream) {
         hl7 = outputStream;
+        return this;
+    }
+
+    public Validator setFHIR(PrintStream outputStream) {
+        fhir = outputStream;
         return this;
     }
 
@@ -1309,6 +1353,9 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
         if (hl7 != null && (errors.isEmpty() || isIgnoringErrors())) {
             convertToHL7();
         }
+        if (fhir != null && (errors.isEmpty() || isIgnoringErrors())) {
+            convertToFHIR();
+        }
         return getCount();
     }
 
@@ -1355,6 +1402,44 @@ public class Validator implements Iterator<CVRSExtract>, Closeable {
         }
     }
 
+    /**
+     * Write the current record to FHIR format.
+     */
+    private void convertToFHIR() {
+        CVRSExtract e2 = null;
+        try {
+            Bundle b = Converter.toFHIR(currentExtract, validator != null ? validator.getVersion() : DEFAULT_VERSION);
+            IParser p = Converter.R4CONTEXT.newJsonParser();
+            try {
+                p.setPrettyPrint(false);
+                PrintWriter pw = new PrintWriter(fhir);
+                p.encodeResourceToWriter(b, pw);
+                pw.println();
+                pw.flush();
+                FHIRCount++;
+            } catch (Exception ex) {
+                CVRSEntry entry = new CVRSEntry(currentExtract, "FHR_003", "???",
+                    ex.getMessage()
+                ).setLine(getCount());
+                addError(entry);
+            }
+            List<CVRSEntry> exList = new ArrayList<>();
+            e2 = Converter.fromFHIR(b, exList, validator, useDefaults, getCount());
+            Field ff = currentExtract.notEqualsAt(e2);
+            if (ff != null) {
+                ff.setAccessible(true);
+                CVRSEntry entry = new CVRSEntry(e2, "FHR_001", ff.getName(),
+                        String.format("Message does not round trip at %s, '%s' != '%s'",
+                            ff.getName(), ff.get(currentExtract), ff.get(e2)
+                        )
+                    ).setLine(getCount());
+                addError(entry);
+            }
+        } catch (Exception e) {
+            CVRSEntry entry = new CVRSEntry(e2, e.getClass().getName(), "???", e.getMessage()).setLine(getCount());
+            addError(entry);
+        }
+    }
 
     /**
      * Update the summary for the given error report.

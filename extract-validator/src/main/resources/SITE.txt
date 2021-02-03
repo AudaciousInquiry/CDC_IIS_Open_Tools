@@ -1,12 +1,12 @@
-LT (Left thigh) 
-LA (left arm)
-LD (left deltoid)
-LG (left gluteus medius)
-LVL (left vastus lateralis)
-LLFA (left lower forearm)
-RT (right thigh)
-RA (right arm)
-RD (right deltoid)
-RG (right gluteus medius)
-RVL (right vastus lateralis)
-RLFA (right lower forearm)
+LT (Left thigh) http://terminology.hl7.org/CodeSystem/v2-0163
+LA (left arm) http://terminology.hl7.org/CodeSystem/v2-0163
+LD (left deltoid) http://terminology.hl7.org/CodeSystem/v2-0163
+LG (left gluteus medius) http://terminology.hl7.org/CodeSystem/v2-0163
+LVL (left vastus lateralis) http://terminology.hl7.org/CodeSystem/v2-0163
+LLFA (left lower forearm) http://terminology.hl7.org/CodeSystem/v2-0163
+RT (right thigh) http://terminology.hl7.org/CodeSystem/v2-0163
+RA (right arm) http://terminology.hl7.org/CodeSystem/v2-0163
+RD (right deltoid) http://terminology.hl7.org/CodeSystem/v2-0163
+RG (right gluteus medius) http://terminology.hl7.org/CodeSystem/v2-0163
+RVL (right vastus lateralis) http://terminology.hl7.org/CodeSystem/v2-0163
+RLFA (right lower forearm) http://terminology.hl7.org/CodeSystem/v2-0163
